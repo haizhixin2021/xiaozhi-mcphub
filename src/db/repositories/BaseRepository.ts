@@ -1,9 +1,6 @@
 import { Repository, EntityTarget, ObjectLiteral } from 'typeorm';
 import { getAppDataSource } from '../connection.js';
 
-/**
- * Base repository class with common CRUD operations
- */
 export class BaseRepository<T extends ObjectLiteral> {
   protected readonly repository: Repository<T>;
 

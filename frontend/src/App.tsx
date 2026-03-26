@@ -15,6 +15,8 @@ import SettingsPage from './pages/SettingsPage';
 import MarketPage from './pages/MarketPage';
 import LogsPage from './pages/LogsPage';
 import XiaozhiEndpointsPage from './pages/XiaozhiEndpointsPage';
+import DevicesPage from './pages/DevicesPage';
+import AlarmsPage from './pages/AlarmsPage';
 import { getBasePath } from './utils/runtime';
 
 
@@ -38,6 +40,8 @@ function App() {
                     <Route path="/groups" element={<GroupsPage />} />
                     <Route path="/users" element={<UsersPage />} />
                     <Route path="/xiaozhi" element={<XiaozhiEndpointsPage />} />
+                    <Route path="/devices" element={<DevicesPage />} />
+                    <Route path="/alarms" element={<AlarmsPage />} />
                     <Route path="/market" element={<MarketPage />} />
                     <Route path="/market/:serverName" element={<MarketPage />} />
                     <Route path="/logs" element={<LogsPage />} />

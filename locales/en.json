@@ -202,7 +202,9 @@
     "settings": "Settings",
     "changePassword": "Change Password",
     "market": "Market",
-    "logs": "Logs"
+    "logs": "Logs",
+    "alarms": "Alarms",
+    "devices": "Devices"
   },
   "pages": {
     "dashboard": {
@@ -620,5 +622,81 @@
       },
       "useSmartRouting": "Use Smart Routing"
     }
+  },
+  "alarms": {
+    "title": "Alarm Management",
+    "devices": "Devices",
+    "noDevices": "No devices available",
+    "selectDevice": "Select a device from the left panel",
+    "noAlarms": "No alarms for this device",
+    "add": "Add Alarm",
+    "addFirst": "Add your first alarm",
+    "selectDeviceFirst": "Please select a device first",
+    "edit": "Edit Alarm",
+    "delete": "Delete Alarm",
+    "confirmDelete": "Are you sure you want to delete this alarm?",
+    "name": "Alarm Name",
+    "namePlaceholder": "e.g., Wake up alarm",
+    "type": "Alarm Type",
+    "scheduled": "Scheduled",
+    "countdown": "Countdown",
+    "hour": "Hour",
+    "minute": "Minute",
+    "delay": "Delay",
+    "seconds": "seconds",
+    "repeat": "Repeat Settings",
+    "once": "Once",
+    "daily": "Daily",
+    "custom": "Custom",
+    "repeatCount": "Repeat Count",
+    "interval": "Interval",
+    "infinite": "Infinite",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "nextTrigger": "Next Trigger",
+    "pendingSync": "Pending sync to device",
+    "sync": "Sync to Device",
+    "syncSuccess": "Alarms synced successfully",
+    "syncError": "Failed to sync alarms",
+    "createSuccess": "Alarm created successfully",
+    "createError": "Failed to create alarm",
+    "updateSuccess": "Alarm updated successfully",
+    "updateError": "Failed to update alarm",
+    "deleteSuccess": "Alarm deleted successfully",
+    "deleteError": "Failed to delete alarm"
+  },
+  "pages": {
+    "alarms": {
+      "title": "Alarm Management"
+    },
+    "devices": {
+      "title": "Device Management"
+    }
+  },
+  "devices": {
+    "title": "Device Management",
+    "noDevices": "No devices available",
+    "name": "Device Name",
+    "status": "Status",
+    "macAddress": "MAC Address",
+    "ipAddress": "IP Address",
+    "firmware": "Firmware",
+    "hardware": "Hardware",
+    "lastSync": "Last Sync",
+    "actions": "Actions",
+    "add": "Add Device",
+    "deviceId": "Device ID",
+    "deviceIdPlaceholder": "e.g., esp32-001",
+    "namePlaceholder": "e.g., Living Room Xiaozhi",
+    "macAddressPlaceholder": "e.g., AA:BB:CC:DD:EE:FF",
+    "ipAddressPlaceholder": "e.g., 192.168.1.100",
+    "firmwarePlaceholder": "e.g., 1.0.0",
+    "hardwarePlaceholder": "e.g., v1.0",
+    "idRequired": "Device ID and name are required",
+    "deleteConfirm": "Are you sure you want to delete this device?",
+    "deleteSuccess": "Device deleted successfully",
+    "deleteError": "Failed to delete device",
+    "createSuccess": "Device created successfully",
+    "createError": "Failed to create device"
   }
 }
