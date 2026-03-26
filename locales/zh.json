@@ -241,6 +241,12 @@
     },
     "logs": {
       "title": "系统日志"
+    },
+    "alarms": {
+      "title": "闹钟管理"
+    },
+    "devices": {
+      "title": "设备管理"
     }
   },
   "logs": {
@@ -667,14 +673,6 @@
     "updateError": "闹钟更新失败",
     "deleteSuccess": "闹钟删除成功",
     "deleteError": "闹钟删除失败"
-  },
-  "pages": {
-    "alarms": {
-      "title": "闹钟管理"
-    },
-    "devices": {
-      "title": "设备管理"
-    }
   },
   "devices": {
     "title": "设备管理",
