@@ -203,7 +203,9 @@
     "xiaozhi": "小智",
     "users": "用户",
     "market": "市场",
-    "logs": "日志"
+    "logs": "日志",
+    "alarms": "闹钟",
+    "devices": "设备"
   },
   "pages": {
     "dashboard": {
@@ -623,5 +625,81 @@
       },
       "useSmartRouting": "使用智能路由"
     }
+  },
+  "alarms": {
+    "title": "闹钟管理",
+    "devices": "设备列表",
+    "noDevices": "暂无设备",
+    "selectDevice": "请从左侧选择一个设备",
+    "noAlarms": "该设备暂无闹钟",
+    "add": "添加闹钟",
+    "addFirst": "添加第一个闹钟",
+    "selectDeviceFirst": "请先选择一个设备",
+    "edit": "编辑闹钟",
+    "delete": "删除闹钟",
+    "confirmDelete": "确定要删除此闹钟吗？",
+    "name": "闹钟名称",
+    "namePlaceholder": "例如：起床闹钟",
+    "type": "闹钟类型",
+    "scheduled": "定时",
+    "countdown": "倒计时",
+    "hour": "小时",
+    "minute": "分钟",
+    "delay": "延时",
+    "seconds": "秒",
+    "repeat": "重复设置",
+    "once": "单次",
+    "daily": "每天",
+    "custom": "自定义",
+    "repeatCount": "重复次数",
+    "interval": "间隔",
+    "infinite": "无限循环",
+    "enabled": "已启用",
+    "disabled": "已禁用",
+    "nextTrigger": "下次触发",
+    "pendingSync": "等待同步到设备",
+    "sync": "同步到设备",
+    "syncSuccess": "闹钟同步成功",
+    "syncError": "闹钟同步失败",
+    "createSuccess": "闹钟创建成功",
+    "createError": "闹钟创建失败",
+    "updateSuccess": "闹钟更新成功",
+    "updateError": "闹钟更新失败",
+    "deleteSuccess": "闹钟删除成功",
+    "deleteError": "闹钟删除失败"
+  },
+  "pages": {
+    "alarms": {
+      "title": "闹钟管理"
+    },
+    "devices": {
+      "title": "设备管理"
+    }
+  },
+  "devices": {
+    "title": "设备管理",
+    "noDevices": "暂无设备",
+    "name": "设备名称",
+    "status": "状态",
+    "macAddress": "MAC 地址",
+    "ipAddress": "IP 地址",
+    "firmware": "固件版本",
+    "hardware": "硬件版本",
+    "lastSync": "最后同步",
+    "actions": "操作",
+    "add": "添加设备",
+    "deviceId": "设备 ID",
+    "deviceIdPlaceholder": "例如：esp32-001",
+    "namePlaceholder": "例如：客厅小智",
+    "macAddressPlaceholder": "例如：AA:BB:CC:DD:EE:FF",
+    "ipAddressPlaceholder": "例如：192.168.1.100",
+    "firmwarePlaceholder": "例如：1.0.0",
+    "hardwarePlaceholder": "例如：v1.0",
+    "idRequired": "设备 ID 和名称为必填项",
+    "deleteConfirm": "确定要删除此设备吗？",
+    "deleteSuccess": "设备删除成功",
+    "deleteError": "设备删除失败",
+    "createSuccess": "设备创建成功",
+    "createError": "设备创建失败"
   }
 }

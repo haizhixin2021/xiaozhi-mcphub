@@ -6,6 +6,8 @@ import { Group } from './Group.js';
 import { XiaozhiEndpoint } from './XiaozhiEndpoint.js';
 import { SystemConfig } from './SystemConfig.js';
 import { XiaozhiConfig } from './XiaozhiConfig.js';
+import { Device } from './Device.js';
+import { DeviceAlarm } from './DeviceAlarm.js';
 
 // Unified entities array
 export const entities = [
@@ -16,6 +18,8 @@ export const entities = [
   XiaozhiEndpoint,
   SystemConfig,
   XiaozhiConfig,
+  Device,
+  DeviceAlarm,
 ];
 
 // Re-exports for direct imports
@@ -27,6 +31,8 @@ export {
   XiaozhiEndpoint,
   SystemConfig,
   XiaozhiConfig,
+  Device,
+  DeviceAlarm,
 };
 
 // Default export for backward compatibility

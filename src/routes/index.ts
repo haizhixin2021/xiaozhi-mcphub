@@ -77,6 +77,27 @@ import {
   getOpenAPIStats,
   executeToolViaOpenAPI,
 } from '../controllers/openApiController.js';
+import {
+  getAllDevices,
+  getDevice,
+  createDevice,
+  updateDevice,
+  deleteDevice,
+  getDevicesWithAlarmCount,
+  registerDevice,
+} from '../controllers/deviceController.js';
+import {
+  getAlarms,
+  getDeviceAlarms,
+  getAlarm,
+  createAlarm,
+  updateAlarm,
+  deleteAlarm,
+  clearDeviceAlarms,
+  syncDeviceAlarms,
+  getUpcomingAlarms,
+  handleAlarmReport,
+} from '../controllers/alarmController.js';
 import { auth } from '../middlewares/auth.js';
 
 const router = express.Router();
@@ -159,6 +180,27 @@ export const initRoutes = (app: express.Application): void => {
   router.get('/market/categories/:category', getMarketServersByCategory);
   router.get('/market/tags', getAllMarketTags);
   router.get('/market/tags/:tag', getMarketServersByTag);
+
+  // Device management routes
+  router.get('/devices', getAllDevices);
+  router.get('/devices/with-alarm-count', getDevicesWithAlarmCount);
+  router.get('/devices/:deviceId', getDevice);
+  router.post('/devices', createDevice);
+  router.put('/devices/:deviceId', updateDevice);
+  router.delete('/devices/:deviceId', deleteDevice);
+  router.post('/devices/register', registerDevice);
+
+  // Alarm management routes
+  router.get('/alarms', getAlarms);
+  router.get('/devices/:deviceId/alarms', getDeviceAlarms);
+  router.get('/devices/:deviceId/alarms/upcoming', getUpcomingAlarms);
+  router.get('/devices/:deviceId/alarms/:alarmId', getAlarm);
+  router.post('/devices/:deviceId/alarms', createAlarm);
+  router.put('/devices/:deviceId/alarms/:alarmId', updateAlarm);
+  router.delete('/devices/:deviceId/alarms/:alarmId', deleteAlarm);
+  router.delete('/devices/:deviceId/alarms', clearDeviceAlarms);
+  router.post('/devices/:deviceId/alarms/sync', syncDeviceAlarms);
+  router.post('/devices/:deviceId/alarms/report', handleAlarmReport);
 
 
   // Log routes
