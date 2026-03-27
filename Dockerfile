@@ -13,17 +13,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# 2. 配置 NodeSource (使用 GPG 密钥更安全)
-RUN mkdir -p /etc/apt/keyrings \
-    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
-    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x bookworm main" > /etc/apt/sources.list.d/nodesource.list
+# 安装 Corepack (如果 Python 镜像里没有)
+RUN corepack enable || (echo "Corepack not found, installing..." && npm install -g corepack && corepack enable)
 
-# 3. 安装 Node.js
-RUN apt-get update && apt-get install -y nodejs \
-    && rm -rf /var/lib/apt/lists/*
+# 在构建时指定使用 Node.js 22
+# 你可以在构建时通过 ARG 传入版本号
+ARG NODE_VERSION=22
+ENV NODE_VERSION=${NODE_VERSION}
+
+# 使用 Corepack 安装指定版本的 Node.js
+RUN corepack prepare node@${NODE_VERSION} --activate
+
 
 # 4. 安装 pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack prepare pnpm@latest --activate
 
 # 5. 安装 uv (从官方镜像复制二进制文件)
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
