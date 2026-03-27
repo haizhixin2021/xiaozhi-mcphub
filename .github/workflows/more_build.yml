@@ -1,0 +1,95 @@
+name: Build and Push Multi-Arch Image
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+  # 建议增加 PR 检查，防止 Dockerfile 写错导致主分支构建失败
+  pull_request:
+    branches: [main]
+
+env:
+  # 定义镜像名称，方便后续引用
+  IMAGE_NAME: haizhixin2021/mcphub
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # 允许写入镜像
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 获取所有历史以便生成元数据
+
+      # --- 优化 1: 版本管理 ---
+      - name: Update version from tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          # 确保 jq 存在 (Ubuntu runner 通常自带，但显式检查是个好习惯)
+          if ! command -v jq &> /dev/null; then
+            sudo apt-get update && sudo apt-get install -y jq
+          fi
+          
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "🏷️ Updating version to: $VERSION"
+          # 使用 jq 安全地更新 JSON
+          jq ".version = \"$VERSION\"" package.json > package.json.tmp
+          mv package.json.tmp package.json
+
+      # --- 优化 2: 构建器设置 ---
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # --- 优化 3: 元数据管理 ---
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            # 场景 1: 手动触发 -> 标记为 edge
+            type=raw,value=edge,enable=${{ github.event_name == 'workflow_dispatch' }}
+            # 场景 2: 打 Tag v1.2.3 -> 标记为 1.2.3
+            type=semver,pattern={{version}},enable=${{ startsWith(github.ref, 'refs/tags/') }}
+            # 场景 3: 打 Tag v1.2.3 -> 同时标记为 latest (仅当是 release tag)
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/') }}
+          flavor: |
+            latest=false # 防止默认 latest 冲突
+
+      # --- 优化 4: 构建与推送 ---
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          # PR 时不推送，仅构建检查
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          # 关键优化：使用 GitHub Actions Cache
+          # 注意：对于多架构，registry 缓存通常比 gha 缓存更有效，
+          # 但 gha 缓存在同架构下极快。这里保留 gha，建议配合 Docker Build Cloud 使用。
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            INSTALL_EXT=true
+          # 如果你的 Dockerfile 有 runtime 阶段，务必解开下面这行，能减小 50%+ 体积
+          target: runtime 
+
+      # --- 优化 5: 验证 ---
+      - name: Image digest
+        run: echo ${{ steps.meta.outputs.tags }}
