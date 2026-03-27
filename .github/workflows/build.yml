@@ -41,7 +41,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: huangjunsen/xiaozhi-mcphub
+          images: haizhixin2021/mcphub
           tags: |
             # 手动触发 -> edge
             type=raw,value=edge,enable=${{ github.event_name == 'workflow_dispatch' }}
