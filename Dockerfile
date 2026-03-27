@@ -13,16 +13,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# 安装 Corepack (如果 Python 镜像里没有)
-RUN corepack enable || (echo "Corepack not found, installing..." && npm install -g corepack && corepack enable)
+# 2. 使用官方脚本安装 Node.js 22
+# 这个脚本会自动处理 apt 源配置和 GPG 密钥，比手动配置更稳
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs
 
-# 在构建时指定使用 Node.js 22
-# 你可以在构建时通过 ARG 传入版本号
-ARG NODE_VERSION=22
-ENV NODE_VERSION=${NODE_VERSION}
-
-# 使用 Corepack 安装指定版本的 Node.js
-RUN corepack prepare node@${NODE_VERSION} --activate
+# 3. 启用 Corepack (此时 node 和 npm 已存在)
+RUN corepack enable
 
 
 # 4. 安装 pnpm
