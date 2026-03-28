@@ -7,7 +7,6 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { Device } from './Device.js';
 
 export enum AlarmType {
   COUNTDOWN = 0,
@@ -72,9 +71,9 @@ export class DeviceAlarm {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @ManyToOne(() => Device, (device) => device.alarms)
+  @ManyToOne('Device', 'alarms')
   @JoinColumn({ name: 'device_id' })
-  device: Device;
+  device: any;
 
   getTypeStr(): string {
     switch (this.type) {
