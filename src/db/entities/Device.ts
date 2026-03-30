@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
+import { DeviceAlarm } from './DeviceAlarm.js';
 
 @Entity({ name: 'devices' })
 export class Device {
@@ -41,8 +42,8 @@ export class Device {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @OneToMany('DeviceAlarm', 'device')
-  alarms: any[];
+  @OneToMany(() => DeviceAlarm, (alarm) => alarm.device)
+  alarms: DeviceAlarm[];
 }
 
 export default Device;
