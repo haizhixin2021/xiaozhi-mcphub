@@ -205,7 +205,8 @@
     "market": "市场",
     "logs": "日志",
     "alarms": "闹钟",
-    "devices": "设备"
+    "devices": "设备",
+    "music": "音乐"
   },
   "pages": {
     "dashboard": {
@@ -247,6 +248,28 @@
     },
     "devices": {
       "title": "设备管理"
+    },
+    "music": {
+      "title": "音乐搜索",
+      "searchPlaceholder": "搜索歌曲、歌手...",
+      "search": "搜索",
+      "songSearch": "单曲搜索",
+      "playlistSearch": "歌单搜索",
+      "dailyRecommendation": "获取每日推荐歌单",
+      "myPlaylist": "我的自制歌单",
+      "sourceSettings": "搜索源设置",
+      "selectAll": "全选",
+      "clearAll": "清空",
+      "foundSongs": "找到 {{count}} 首歌曲",
+      "playAll": "播放全部",
+      "batchOperation": "批量操作",
+      "play": "播放",
+      "changeSource": "换源",
+      "favorite": "收藏",
+      "download": "下载",
+      "lyrics": "歌词",
+      "cover": "封面",
+      "invalid": "无效"
     }
   },
   "logs": {
@@ -699,5 +722,20 @@
     "deleteError": "设备删除失败",
     "createSuccess": "设备创建成功",
     "createError": "设备创建失败"
+  },
+  "music": {
+    "sources": {
+      "netease": "网易云音乐",
+      "qq": "QQ音乐",
+      "kugou": "酷狗音乐",
+      "kuwo": "酷我音乐",
+      "migu": "咪咕音乐",
+      "fivesing": "5sing",
+      "jamendo": "Jamendo (CC)",
+      "joox": "JOOX",
+      "qianqian": "千千音乐",
+      "soda": "Soda音乐",
+      "bilibili": "Bilibili"
+    }
   }
 }

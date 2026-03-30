@@ -98,6 +98,7 @@ import {
   getUpcomingAlarms,
   handleAlarmReport,
 } from '../controllers/alarmController.js';
+import musicRoutes from './music.js';
 import { auth } from '../middlewares/auth.js';
 
 const router = express.Router();
@@ -202,6 +203,8 @@ export const initRoutes = (app: express.Application): void => {
   router.post('/devices/:deviceId/alarms/sync', syncDeviceAlarms);
   router.post('/devices/:deviceId/alarms/report', handleAlarmReport);
 
+  // Music routes
+  router.use('/music', musicRoutes);
 
   // Log routes
   router.get('/logs', getAllLogs);

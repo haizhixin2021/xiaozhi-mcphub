@@ -204,7 +204,8 @@
     "market": "Market",
     "logs": "Logs",
     "alarms": "Alarms",
-    "devices": "Devices"
+    "devices": "Devices",
+    "music": "Music"
   },
   "pages": {
     "dashboard": {
@@ -239,6 +240,28 @@
     },
     "logs": {
       "title": "System Logs"
+    },
+    "music": {
+      "title": "Music Search",
+      "searchPlaceholder": "Search songs, artists...",
+      "search": "Search",
+      "songSearch": "Song Search",
+      "playlistSearch": "Playlist Search",
+      "dailyRecommendation": "Get Daily Recommendations",
+      "myPlaylist": "My Playlists",
+      "sourceSettings": "Source Settings",
+      "selectAll": "Select All",
+      "clearAll": "Clear All",
+      "foundSongs": "Found {{count}} songs",
+      "playAll": "Play All",
+      "batchOperation": "Batch Operation",
+      "play": "Play",
+      "changeSource": "Change Source",
+      "favorite": "Favorite",
+      "download": "Download",
+      "lyrics": "Lyrics",
+      "cover": "Cover",
+      "invalid": "Invalid"
     }
   },
   "logs": {
@@ -698,5 +721,20 @@
     "deleteError": "Failed to delete device",
     "createSuccess": "Device created successfully",
     "createError": "Failed to create device"
+  },
+  "music": {
+    "sources": {
+      "netease": "NetEase Music",
+      "qq": "QQ Music",
+      "kugou": "Kugou Music",
+      "kuwo": "Kuwo Music",
+      "migu": "Migu Music",
+      "fivesing": "5sing",
+      "jamendo": "Jamendo (CC)",
+      "joox": "JOOX",
+      "qianqian": "Qianqian Music",
+      "soda": "Soda Music",
+      "bilibili": "Bilibili"
+    }
   }
 }
