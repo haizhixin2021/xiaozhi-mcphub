@@ -1,33 +1,44 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMusicData } from '../hooks/useMusicData';
-import { Song } from '../services/musicService';
+import { Song, Playlist } from '../services/musicService';
 import SearchBar from '../components/music/SearchBar';
 import SourceSelector from '../components/music/SourceSelector';
 import SongCard from '../components/music/SongCard';
+import PlaylistCard from '../components/music/PlaylistCard';
 import PlayerBar from '../components/music/PlayerBar';
 import LyricsModal from '../components/music/LyricsModal';
 import ChangeSourceModal from '../components/music/ChangeSourceModal';
+import CookieModal from '../components/music/CookieModal';
 
 const MusicPage: React.FC = () => {
   const { t } = useTranslation();
   const {
     songs,
+    playlists,
     loading,
     error,
     currentSong,
     isPlaying,
+    currentTime,
+    playlist,
+    currentIndex,
     selectedSources,
     favorites,
     search,
+    searchPlaylist,
     playSong,
+    playAll,
+    pauseSong,
     togglePlay,
     stopSong,
+    seekTo,
     toggleSource,
     selectAllSources,
     clearAllSources,
     getDailyRecommendation,
     getLyrics,
+    getPlaylistSongs,
     changeSource,
     isFavorite,
     toggleFavorite,
@@ -41,13 +52,37 @@ const MusicPage: React.FC = () => {
   const [lyricsSong, setLyricsSong] = useState<Song | null>(null);
   const [changeSourceSong, setChangeSourceSong] = useState<Song | null>(null);
   const [showFavorites, setShowFavorites] = useState(false);
+  const [showPlaylists, setShowPlaylists] = useState(false);
+  const [currentPlaylist, setCurrentPlaylist] = useState<Playlist | null>(null);
+  const [showCookieModal, setShowCookieModal] = useState(false);
 
-  const handleSearch = () => {
-    search({ keyword });
+  const handleSearch = async () => {
+    if (searchMode === 'playlist') {
+      setShowPlaylists(true);
+      setCurrentPlaylist(null);
+      await searchPlaylist({ keyword });
+    } else {
+      setShowPlaylists(false);
+      setCurrentPlaylist(null);
+      search({ keyword });
+    }
   };
 
   const handleDailyRecommendation = async () => {
+    setShowPlaylists(true);
+    setCurrentPlaylist(null);
     await getDailyRecommendation();
+  };
+
+  const handlePlaylistClick = async (playlist: Playlist) => {
+    setCurrentPlaylist(playlist);
+    setShowPlaylists(false);
+    await getPlaylistSongs(playlist.id, playlist.source);
+  };
+
+  const handleBackToPlaylists = () => {
+    setCurrentPlaylist(null);
+    setShowPlaylists(true);
   };
 
   const handleShowLyrics = (song: Song) => {
@@ -86,12 +121,28 @@ const MusicPage: React.FC = () => {
 
   const displaySongs = showFavorites ? favorites : songs;
 
+  const handlePlaySong = (song: Song) => {
+    playSong(song, displaySongs);
+  };
+
   return (
     <div className="pb-24">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-          {t('pages.music.title')}
-        </h1>
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {t('pages.music.title')}
+          </h1>
+          <button
+            onClick={() => setShowCookieModal(true)}
+            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            title="设置"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+        </div>
 
         <div className="flex justify-center mb-4">
           <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
@@ -133,7 +184,11 @@ const MusicPage: React.FC = () => {
             🔥 {t('pages.music.dailyRecommendation')}
           </button>
           <button
-            onClick={() => setShowFavorites(!showFavorites)}
+            onClick={() => {
+              setShowFavorites(!showFavorites);
+              setShowPlaylists(false);
+              setCurrentPlaylist(null);
+            }}
             className={`px-6 py-3 rounded-full hover:shadow-lg transition-all ${
               showFavorites
                 ? 'bg-gradient-to-r from-red-400 to-pink-400 text-white'
@@ -144,7 +199,7 @@ const MusicPage: React.FC = () => {
           </button>
         </div>
 
-        {!showFavorites && (
+        {!showFavorites && !currentPlaylist && (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 mb-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
@@ -191,7 +246,67 @@ const MusicPage: React.FC = () => {
         </div>
       )}
 
-      {!loading && displaySongs.length > 0 && (
+      {showPlaylists && !loading && playlists.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
+            🎵 每日推荐歌单 ({playlists.length})
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {playlists.map((playlist, index) => (
+              <PlaylistCard
+                key={`${playlist.source}-${playlist.id}-${index}`}
+                playlist={playlist}
+                onClick={handlePlaylistClick}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {currentPlaylist && !loading && displaySongs.length > 0 && (
+        <div>
+          <div className="flex items-center gap-4 mb-4">
+            <button
+              onClick={handleBackToPlaylists}
+              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
+                {currentPlaylist.name}
+              </h3>
+              {currentPlaylist.creator && (
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {currentPlaylist.creator}
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="space-y-3">
+            {displaySongs.map((song, index) => (
+              <SongCard
+                key={`${song.source}-${song.id}-${index}`}
+                song={song}
+                onPlay={handlePlaySong}
+                onPause={pauseSong}
+                isPlaying={currentSong?.id === song.id && currentSong?.source === song.source && isPlaying}
+                isFavorite={isFavorite(song)}
+                onToggleFavorite={toggleFavorite}
+                onChangeSource={handleChangeSource}
+                onShowLyrics={handleShowLyrics}
+                onDownloadSong={handleDownloadSong}
+                onDownloadLyric={handleDownloadLyric}
+                onDownloadCover={handleDownloadCover}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!showPlaylists && !currentPlaylist && !loading && displaySongs.length > 0 && (
         <div>
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
@@ -202,7 +317,10 @@ const MusicPage: React.FC = () => {
             </h3>
             {!showFavorites && (
               <div className="flex gap-2">
-                <button className="px-4 py-2 border border-blue-500 text-blue-500 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30">
+                <button 
+                  onClick={() => playAll(displaySongs)}
+                  className="px-4 py-2 border border-blue-500 text-blue-500 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                >
                   ▶️ {t('pages.music.playAll')}
                 </button>
                 <button className="px-4 py-2 border border-blue-500 text-blue-500 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30">
@@ -218,6 +336,7 @@ const MusicPage: React.FC = () => {
                 key={`${song.source}-${song.id}-${index}`}
                 song={song}
                 onPlay={playSong}
+                onPause={pauseSong}
                 isPlaying={currentSong?.id === song.id && currentSong?.source === song.source && isPlaying}
                 isFavorite={isFavorite(song)}
                 onToggleFavorite={toggleFavorite}
@@ -232,7 +351,7 @@ const MusicPage: React.FC = () => {
         </div>
       )}
 
-      {!loading && displaySongs.length === 0 && keyword === '' && !showFavorites && (
+      {!loading && displaySongs.length === 0 && keyword === '' && !showFavorites && !showPlaylists && (
         <div className="text-center py-12 text-gray-500 dark:text-gray-400">
           <svg
             className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600"
@@ -273,8 +392,14 @@ const MusicPage: React.FC = () => {
       <PlayerBar
         song={currentSong}
         isPlaying={isPlaying}
+        currentTime={currentTime}
+        playlist={playlist}
+        currentIndex={currentIndex}
         onTogglePlay={togglePlay}
         onClose={stopSong}
+        onGetLyrics={getLyrics}
+        onSeek={seekTo}
+        onPlaySong={handlePlaySong}
       />
 
       {lyricsSong && (
@@ -291,6 +416,12 @@ const MusicPage: React.FC = () => {
           onClose={() => setChangeSourceSong(null)}
           onChangeSource={changeSource}
           onPlay={playSong}
+        />
+      )}
+
+      {showCookieModal && (
+        <CookieModal
+          onClose={() => setShowCookieModal(false)}
         />
       )}
     </div>

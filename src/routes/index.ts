@@ -99,6 +99,7 @@ import {
   handleAlarmReport,
 } from '../controllers/alarmController.js';
 import musicRoutes from './music.js';
+import { getCookies, setCookies } from '../controllers/musicController.js';
 import { auth } from '../middlewares/auth.js';
 
 const router = express.Router();
@@ -205,6 +206,10 @@ export const initRoutes = (app: express.Application): void => {
 
   // Music routes
   router.use('/music', musicRoutes);
+
+  // Cookie management routes
+  router.get('/v1/system/cookies', getCookies);
+  router.post('/v1/system/cookies', setCookies);
 
   // Log routes
   router.get('/logs', getAllLogs);

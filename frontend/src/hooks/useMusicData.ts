@@ -23,21 +23,71 @@ export const useMusicData = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
   const [selectedSources, setSelectedSources] = useState<string[]>([
     'netease', 'qq', 'kugou', 'kuwo'
   ]);
   const [favorites, setFavorites] = useState<Song[]>([]);
+  const [playlist, setPlaylist] = useState<Song[]>([]);
+  const [currentIndex, setCurrentIndex] = useState<number>(-1);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const playlistRef = useRef<Song[]>([]);
+  const currentIndexRef = useRef<number>(-1);
+
+  useEffect(() => {
+    playlistRef.current = playlist;
+  }, [playlist]);
+
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
+
+  const playNextSong = useCallback(async () => {
+    const currentPlaylist = playlistRef.current;
+    const currentIdx = currentIndexRef.current;
+    
+    if (currentPlaylist.length === 0 || currentIdx >= currentPlaylist.length - 1) {
+      return;
+    }
+    
+    const nextIndex = currentIdx + 1;
+    const nextSong = currentPlaylist[nextIndex];
+    
+    try {
+      const url = await musicService.getStreamUrl(
+        nextSong.id,
+        nextSong.source,
+        nextSong.name,
+        nextSong.artist
+      );
+      if (url && audioRef.current) {
+        audioRef.current.src = url;
+        await audioRef.current.play();
+        setCurrentSong({ ...nextSong, url });
+        setCurrentIndex(nextIndex);
+        setIsPlaying(true);
+      }
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }, []);
 
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio();
-      audioRef.current.onended = () => {
+      audioRef.current.onended = async () => {
         setIsPlaying(false);
+        setCurrentTime(0);
+        await playNextSong();
       };
       audioRef.current.onerror = () => {
         setError('播放失败');
         setIsPlaying(false);
+      };
+      audioRef.current.ontimeupdate = () => {
+        if (audioRef.current) {
+          setCurrentTime(audioRef.current.currentTime);
+        }
       };
     }
     setFavorites(getFavorites());
@@ -47,7 +97,7 @@ export const useMusicData = () => {
         audioRef.current = null;
       }
     };
-  }, []);
+  }, [playNextSong]);
 
   const search = useCallback(async (params: SearchParams) => {
     if (!params.keyword.trim()) {
@@ -92,7 +142,7 @@ export const useMusicData = () => {
     }
   }, [selectedSources]);
 
-  const playSong = useCallback(async (song: Song) => {
+  const playSong = useCallback(async (song: Song, songList?: Song[]) => {
     try {
       setError(null);
       const url = await musicService.getStreamUrl(
@@ -103,9 +153,15 @@ export const useMusicData = () => {
       );
       if (url && audioRef.current) {
         audioRef.current.src = url;
-        audioRef.current.play();
+        await audioRef.current.play();
         setCurrentSong({ ...song, url });
         setIsPlaying(true);
+        
+        if (songList) {
+          setPlaylist(songList);
+          const index = songList.findIndex(s => s.id === song.id && s.source === song.source);
+          setCurrentIndex(index >= 0 ? index : -1);
+        }
       } else {
         setError('无法获取播放链接');
       }
@@ -113,6 +169,11 @@ export const useMusicData = () => {
       setError((err as Error).message);
     }
   }, []);
+
+  const playAll = useCallback(async (songList: Song[]) => {
+    if (songList.length === 0) return;
+    await playSong(songList[0], songList);
+  }, [playSong]);
 
   const pauseSong = useCallback(() => {
     if (audioRef.current) {
@@ -145,6 +206,13 @@ export const useMusicData = () => {
     setIsPlaying(false);
   }, []);
 
+  const seekTo = useCallback((time: number) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+      setCurrentTime(time);
+    }
+  }, []);
+
   const toggleSource = useCallback((source: string) => {
     setSelectedSources(prev => 
       prev.includes(source) 
@@ -172,16 +240,17 @@ export const useMusicData = () => {
       setPlaylists(result);
     } catch (err) {
       setError((err as Error).message);
+      setPlaylists([]);
     } finally {
       setLoading(false);
     }
   }, [selectedSources]);
 
-  const getLyrics = useCallback(async (song: Song) => {
+  const getLyrics = useCallback(async (song: Song): Promise<string | null> => {
     try {
-      const lyrics = await musicService.getLyrics(song.id, song.source);
-      return lyrics;
+      return await musicService.getLyrics(song.id, song.source);
     } catch (err) {
+      console.error('获取歌词失败:', err);
       return null;
     }
   }, []);
@@ -192,41 +261,46 @@ export const useMusicData = () => {
     try {
       const result = await musicService.getPlaylistSongs(playlistId, source);
       setSongs(result);
-      return result;
     } catch (err) {
       setError((err as Error).message);
-      return [];
+      setSongs([]);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const changeSource = useCallback(async (song: Song, targetSource?: string) => {
+  const changeSource = useCallback(async (song: Song, targetSource?: string): Promise<Song | null> => {
+    if (!targetSource) {
+      return null;
+    }
     try {
-      const result = await musicService.changeSource(
-        song.id, 
-        song.source, 
-        song.name, 
-        song.artist, 
-        song.duration,
-        targetSource
-      );
-      return result;
+      setLoading(true);
+      const results = await musicService.search({
+        keyword: `${song.name} ${song.artist}`,
+        sources: [targetSource],
+      });
+      
+      if (results.length > 0) {
+        return results[0];
+      }
+      return null;
     } catch (err) {
       setError((err as Error).message);
       return null;
+    } finally {
+      setLoading(false);
     }
   }, []);
 
-  const isFavorite = useCallback((song: Song) => {
+  const isFavorite = useCallback((song: Song): boolean => {
     return favorites.some(f => f.id === song.id && f.source === song.source);
   }, [favorites]);
 
   const toggleFavorite = useCallback((song: Song) => {
     setFavorites(prev => {
-      const exists = prev.some(f => f.id === song.id && f.source === song.source);
+      const isExist = prev.some(f => f.id === song.id && f.source === song.source);
       let newFavorites: Song[];
-      if (exists) {
+      if (isExist) {
         newFavorites = prev.filter(f => !(f.id === song.id && f.source === song.source));
       } else {
         newFavorites = [...prev, song];
@@ -238,14 +312,26 @@ export const useMusicData = () => {
 
   const downloadSong = useCallback(async (song: Song) => {
     try {
-      const url = await musicService.getStreamUrl(song.id, song.source, song.name, song.artist);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${song.name} - ${song.artist}.mp3`;
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const url = await musicService.getStreamUrl(
+        song.id,
+        song.source,
+        song.name,
+        song.artist
+      );
+      if (url) {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = `${song.name} - ${song.artist}.mp3`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+      } else {
+        setError('无法获取下载链接');
+      }
     } catch (err) {
       setError((err as Error).message);
     }
@@ -253,9 +339,9 @@ export const useMusicData = () => {
 
   const downloadLyric = useCallback(async (song: Song) => {
     try {
-      const lyrics = await musicService.getLyrics(song.id, song.source);
-      if (lyrics) {
-        const blob = new Blob([lyrics], { type: 'text/plain;charset=utf-8' });
+      const lrc = await musicService.getLyrics(song.id, song.source);
+      if (lrc) {
+        const blob = new Blob([lrc], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
@@ -300,15 +386,20 @@ export const useMusicData = () => {
     error,
     currentSong,
     isPlaying,
+    currentTime,
+    playlist,
+    currentIndex,
     selectedSources,
     favorites,
     search,
     searchPlaylist,
     playSong,
+    playAll,
     pauseSong,
     resumeSong,
     togglePlay,
     stopSong,
+    seekTo,
     toggleSource,
     selectAllSources,
     clearAllSources,

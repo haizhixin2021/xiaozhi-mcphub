@@ -4,6 +4,7 @@ import { Song } from '../../services/musicService';
 interface SongCardProps {
   song: Song;
   onPlay: (song: Song) => void;
+  onPause?: () => void;
   isPlaying?: boolean;
   isFavorite?: boolean;
   onToggleFavorite?: (song: Song) => void;
@@ -17,6 +18,7 @@ interface SongCardProps {
 const SongCard: React.FC<SongCardProps> = ({
   song,
   onPlay,
+  onPause,
   isPlaying,
   isFavorite,
   onToggleFavorite,
@@ -113,13 +115,19 @@ const SongCard: React.FC<SongCardProps> = ({
 
         <div className="flex items-center gap-1">
           <button
-            onClick={() => onPlay(song)}
+            onClick={() => {
+              if (isPlaying) {
+                onPause?.();
+              } else {
+                onPlay(song);
+              }
+            }}
             className={`p-2 rounded-full transition-colors ${
               isPlaying
                 ? 'text-green-500 bg-green-50 dark:bg-green-900/30'
                 : 'text-gray-400 hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-900/30'
             }`}
-            title="播放"
+            title={isPlaying ? '暂停' : '播放'}
           >
             {isPlaying ? (
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

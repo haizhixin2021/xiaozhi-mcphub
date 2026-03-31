@@ -37,6 +37,20 @@ export interface Playlist {
   link?: string;
 }
 
+export interface CookieData {
+  netease?: string;
+  qq?: string;
+  kugou?: string;
+  kuwo?: string;
+  migu?: string;
+  fivesing?: string;
+  jamendo?: string;
+  joox?: string;
+  qianqian?: string;
+  soda?: string;
+  bilibili?: string;
+}
+
 interface SearchResponse {
   songs: Song[];
   playlists: Playlist[];
@@ -103,8 +117,8 @@ export class MusicProxyService {
 
   async getLyrics(id: string, source: string): Promise<string> {
     const params = new URLSearchParams({ id, source });
-    const response = await this.client.get<ApiResponse<string>>(`/api/v1/music/lyric?${params.toString()}`);
-    return response.data.data || '';
+    const response = await this.client.get<ApiResponse<{ lyric: string }>>(`/api/v1/music/lyric?${params.toString()}`);
+    return response.data.data?.lyric || '';
   }
 
   async getDailyRecommendation(sources?: string[]): Promise<Playlist[]> {
@@ -139,6 +153,15 @@ export class MusicProxyService {
   async downloadCover(coverUrl: string, name: string, artist: string): Promise<string> {
     const params = new URLSearchParams({ url: coverUrl, name, artist });
     return `${config.baseUrl}/api/v1/music/cover?${params.toString()}`;
+  }
+
+  async getCookies(): Promise<CookieData> {
+    const response = await this.client.get<CookieData>('/api/v1/system/cookies');
+    return response.data;
+  }
+
+  async setCookies(cookies: CookieData): Promise<void> {
+    await this.client.post('/api/v1/system/cookies', cookies);
   }
 }
 

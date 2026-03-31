@@ -117,3 +117,24 @@ export const changeSource = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: (error as Error).message });
   }
 };
+
+export const getCookies = async (req: Request, res: Response) => {
+  try {
+    const result = await musicProxyService.getCookies();
+    res.json(result);
+  } catch (error) {
+    console.error('Get cookies error:', error);
+    res.status(500).json({ success: false, message: (error as Error).message });
+  }
+};
+
+export const setCookies = async (req: Request, res: Response) => {
+  try {
+    const cookies = req.body;
+    await musicProxyService.setCookies(cookies);
+    res.json({ success: true, message: 'Cookies saved successfully' });
+  } catch (error) {
+    console.error('Set cookies error:', error);
+    res.status(500).json({ success: false, message: (error as Error).message });
+  }
+};

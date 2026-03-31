@@ -33,6 +33,9 @@ const LyricsModal: React.FC<LyricsModalProps> = ({ song, onClose, onGetLyrics })
   }, [song, onGetLyrics]);
 
   const parseLyrics = (lrc: string) => {
+    if (!lrc || typeof lrc !== 'string') {
+      return [];
+    }
     const lines = lrc.split('\n');
     const parsed: { time: number; text: string }[] = [];
     const timeRegex = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/g;
@@ -92,14 +95,16 @@ const LyricsModal: React.FC<LyricsModalProps> = ({ song, onClose, onGetLyrics })
 
     return (
       <div className="space-y-2 max-h-[60vh] overflow-y-auto">
-        {lyrics.split('\n').map((line, index) => (
+        {typeof lyrics === 'string' ? lyrics.split('\n').map((line, index) => (
           <p
             key={index}
             className="text-center text-gray-700 dark:text-gray-300 leading-relaxed"
           >
             {line || '\u00A0'}
           </p>
-        ))}
+        )) : (
+          <p className="text-center text-gray-500">暂无歌词</p>
+        )}
       </div>
     );
   };

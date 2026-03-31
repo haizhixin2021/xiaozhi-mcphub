@@ -34,6 +34,20 @@ export interface SearchParams {
   sources?: string[];
 }
 
+export interface CookieData {
+  netease: string;
+  qq: string;
+  kugou: string;
+  kuwo: string;
+  migu: string;
+  fivesing: string;
+  jamendo: string;
+  joox: string;
+  qianqian: string;
+  soda: string;
+  bilibili: string;
+}
+
 export const musicService = {
   async search(params: SearchParams): Promise<Song[]> {
     const queryParams = new URLSearchParams({ keyword: params.keyword });
@@ -57,47 +71,22 @@ export const musicService = {
     return response.data || [];
   },
 
-  async getSongDetail(id: string, source: string, duration?: number): Promise<Song> {
-    const queryParams = new URLSearchParams({});
-    if (duration) queryParams.append('duration', duration.toString());
-    const response = await apiGet<{ success: boolean; data: Song }>(
-      `/music/song/${source}/${id}?${queryParams.toString()}`
-    );
-    return response.data;
-  },
-
-  async getSongUrl(id: string, source: string): Promise<{ url: string; size?: number; bitrate?: number }> {
-    const response = await apiGet<{ success: boolean; data: { url: string; size?: number; bitrate?: number } }>(
-      `/music/song/${source}/${id}/url`
-    );
-    return response.data;
-  },
-
-  async getStreamUrl(id: string, source: string, name?: string, artist?: string): Promise<string> {
-    const queryParams = new URLSearchParams({});
+  async getStreamUrl(id: string, source: string, name: string, artist: string): Promise<string | null> {
+    const queryParams = new URLSearchParams();
     if (name) queryParams.append('name', name);
     if (artist) queryParams.append('artist', artist);
+    const queryString = queryParams.toString();
     const response = await apiGet<{ success: boolean; data: { url: string } }>(
-      `/music/song/${source}/${id}/stream?${queryParams.toString()}`
+      `/music/song/${source}/${id}/stream${queryString ? `?${queryString}` : ''}`
     );
-    return response.data.url;
+    return response.data?.url || null;
   },
 
-  async getLyrics(id: string, source: string): Promise<string> {
+  async getLyrics(id: string, source: string): Promise<string | null> {
     const response = await apiGet<{ success: boolean; data: string }>(
       `/music/song/${source}/${id}/lyrics`
     );
-    return response.data;
-  },
-
-  async getDailyRecommendation(sources?: string[]): Promise<Playlist[]> {
-    const queryParams = new URLSearchParams();
-    if (sources && sources.length > 0) {
-      queryParams.append('sources', sources.join(','));
-    }
-    const url = sources ? `/music/daily?${queryParams.toString()}` : '/music/daily';
-    const response = await apiGet<{ success: boolean; data: Playlist[] }>(url);
-    return response.data || [];
+    return response.data || null;
   },
 
   async getPlaylistSongs(playlistId: string, source: string): Promise<Song[]> {
@@ -107,11 +96,28 @@ export const musicService = {
     return response.data || [];
   },
 
-  async changeSource(id: string, source: string, name: string, artist: string, duration?: number, target?: string): Promise<Song | null> {
-    const response = await apiPost<{ success: boolean; data: Song | null }>(
-      `/music/song/${source}/${id}/change-source`,
-      { name, artist, duration, target }
+  async getDailyRecommendation(sources: string[]): Promise<Playlist[]> {
+    const queryParams = new URLSearchParams();
+    if (sources && sources.length > 0) {
+      queryParams.append('sources', sources.join(','));
+    }
+    const response = await apiGet<{ success: boolean; data: Playlist[] }>(
+      `/music/daily?${queryParams.toString()}`
     );
-    return response.data;
+    return response.data || [];
+  },
+
+  async getCookies(): Promise<CookieData> {
+    const response = await apiGet<CookieData>(
+      `/v1/system/cookies`
+    );
+    return response;
+  },
+
+  async setCookies(cookies: CookieData): Promise<void> {
+    await apiPost<void>(
+      `/v1/system/cookies`,
+      cookies
+    );
   },
 };
