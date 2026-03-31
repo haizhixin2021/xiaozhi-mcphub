@@ -1,12 +1,4 @@
-import axios from 'axios';
-
-interface MusicConfig {
-  baseUrl: string;
-}
-
-const config: MusicConfig = {
-  baseUrl: process.env.MUSIC_DL_URL || 'http://localhost:37778',
-};
+import axios, { AxiosInstance } from 'axios';
 
 export interface Song {
   id: string;
@@ -64,13 +56,24 @@ interface ApiResponse<T> {
 }
 
 export class MusicProxyService {
-  private client;
+  private client: AxiosInstance | null = null;
+  private baseUrl: string | null = null;
 
-  constructor() {
-    this.client = axios.create({
-      baseURL: config.baseUrl,
-      timeout: 30000,
-    });
+  private getBaseUrl(): string {
+    if (!this.baseUrl) {
+      this.baseUrl = process.env.MUSIC_DL_URL || 'http://localhost:37778';
+    }
+    return this.baseUrl;
+  }
+
+  private getClient(): AxiosInstance {
+    if (!this.client) {
+      this.client = axios.create({
+        baseURL: this.getBaseUrl(),
+        timeout: 30000,
+      });
+    }
+    return this.client;
   }
 
   async search(keyword: string, sources?: string[]): Promise<Song[]> {
@@ -80,7 +83,7 @@ export class MusicProxyService {
     if (sources && sources.length > 0) {
       sources.forEach(s => params.append('sources', s));
     }
-    const response = await this.client.get<ApiResponse<SearchResponse>>(`/api/v1/music/search?${params.toString()}`);
+    const response = await this.getClient().get<ApiResponse<SearchResponse>>(`/api/v1/music/search?${params.toString()}`);
     return response.data.data?.songs || [];
   }
 
@@ -91,20 +94,20 @@ export class MusicProxyService {
     if (sources && sources.length > 0) {
       sources.forEach(s => params.append('sources', s));
     }
-    const response = await this.client.get<ApiResponse<SearchResponse>>(`/api/v1/music/search?${params.toString()}`);
+    const response = await this.getClient().get<ApiResponse<SearchResponse>>(`/api/v1/music/search?${params.toString()}`);
     return response.data.data?.playlists || [];
   }
 
   async getSongDetail(id: string, source: string, duration?: number): Promise<Song> {
     const params = new URLSearchParams({ id, source });
     if (duration) params.append('duration', duration.toString());
-    const response = await this.client.get<ApiResponse<Song>>(`/api/v1/music/inspect?${params.toString()}`);
+    const response = await this.getClient().get<ApiResponse<Song>>(`/api/v1/music/inspect?${params.toString()}`);
     return response.data.data;
   }
 
   async getSongUrl(id: string, source: string): Promise<{ url: string; size?: number; bitrate?: number }> {
     const params = new URLSearchParams({ id, source });
-    const response = await this.client.get<ApiResponse<{ url: string; size?: number; bitrate?: number }>>(`/api/v1/music/url?${params.toString()}`);
+    const response = await this.getClient().get<ApiResponse<{ url: string; size?: number; bitrate?: number }>>(`/api/v1/music/url?${params.toString()}`);
     return response.data.data;
   }
 
@@ -112,12 +115,12 @@ export class MusicProxyService {
     const params = new URLSearchParams({ id, source });
     if (name) params.append('name', name);
     if (artist) params.append('artist', artist);
-    return `${config.baseUrl}/api/v1/music/stream?${params.toString()}`;
+    return `${this.getBaseUrl()}/api/v1/music/stream?${params.toString()}`;
   }
 
   async getLyrics(id: string, source: string): Promise<string> {
     const params = new URLSearchParams({ id, source });
-    const response = await this.client.get<ApiResponse<{ lyric: string }>>(`/api/v1/music/lyric?${params.toString()}`);
+    const response = await this.getClient().get<ApiResponse<{ lyric: string }>>(`/api/v1/music/lyric?${params.toString()}`);
     return response.data.data?.lyric || '';
   }
 
@@ -127,13 +130,13 @@ export class MusicProxyService {
       sources.forEach(s => params.append('sources', s));
     }
     const url = params.toString() ? `/api/v1/playlist/recommend?${params.toString()}` : '/api/v1/playlist/recommend';
-    const response = await this.client.get<ApiResponse<Playlist[]>>(url);
+    const response = await this.getClient().get<ApiResponse<Playlist[]>>(url);
     return response.data.data || [];
   }
 
   async getPlaylistSongs(playlistId: string, source: string): Promise<Song[]> {
     const params = new URLSearchParams({ id: playlistId, source });
-    const response = await this.client.get<ApiResponse<Song[]>>(`/api/v1/playlist/detail?${params.toString()}`);
+    const response = await this.getClient().get<ApiResponse<Song[]>>(`/api/v1/playlist/detail?${params.toString()}`);
     return response.data.data || [];
   }
 
@@ -141,27 +144,27 @@ export class MusicProxyService {
     const params = new URLSearchParams({ name, artist, source: currentSource });
     if (duration) params.append('duration', duration.toString());
     if (targetSource) params.append('target', targetSource);
-    const response = await this.client.get<ApiResponse<Song>>(`/api/v1/music/switch?${params.toString()}`);
+    const response = await this.getClient().get<ApiResponse<Song>>(`/api/v1/music/switch?${params.toString()}`);
     return response.data.data;
   }
 
   async downloadLyric(id: string, source: string, name: string, artist: string): Promise<string> {
     const params = new URLSearchParams({ id, source, name, artist });
-    return `${config.baseUrl}/api/v1/music/lyric/file?${params.toString()}`;
+    return `${this.getBaseUrl()}/api/v1/music/lyric/file?${params.toString()}`;
   }
 
   async downloadCover(coverUrl: string, name: string, artist: string): Promise<string> {
     const params = new URLSearchParams({ url: coverUrl, name, artist });
-    return `${config.baseUrl}/api/v1/music/cover?${params.toString()}`;
+    return `${this.getBaseUrl()}/api/v1/music/cover?${params.toString()}`;
   }
 
   async getCookies(): Promise<CookieData> {
-    const response = await this.client.get<CookieData>('/api/v1/system/cookies');
+    const response = await this.getClient().get<CookieData>('/api/v1/system/cookies');
     return response.data;
   }
 
   async setCookies(cookies: CookieData): Promise<void> {
-    await this.client.post('/api/v1/system/cookies', cookies);
+    await this.getClient().post('/api/v1/system/cookies', cookies);
   }
 }
 
