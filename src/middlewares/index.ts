@@ -17,6 +17,16 @@ export const errorHandler = (
   });
 };
 
+const publicPaths = [
+  '/auth/login',
+  '/auth/register',
+  '/music/stream/',
+];
+
+const isPublicPath = (path: string): boolean => {
+  return publicPaths.some(publicPath => path.startsWith(publicPath));
+};
+
 export const initMiddlewares = (app: express.Application): void => {
   // Apply i18n middleware first to detect language for all requests
   app.use(i18nMiddleware);
@@ -47,8 +57,8 @@ export const initMiddlewares = (app: express.Application): void => {
 
   // Protect API routes with authentication middleware, but exclude auth endpoints
   app.use(`${config.basePath}/api`, (req, res, next) => {
-    // Skip authentication for login endpoint
-    if (req.path === '/auth/login') {
+    // Skip authentication for public paths
+    if (isPublicPath(req.path)) {
       next();
     } else {
       // Apply authentication middleware first

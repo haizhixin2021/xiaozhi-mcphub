@@ -58,10 +58,52 @@ export const getStreamUrl = async (req: Request, res: Response) => {
   try {
     const { id, source } = req.params;
     const { name, artist } = req.query;
-    const url = await musicProxyService.getStreamUrl(id, source, name as string, artist as string);
-    res.json({ success: true, data: { url } });
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const proxyUrl = `${protocol}://${host}/api/music/stream/${source}/${id}?name=${encodeURIComponent(name as string || '')}&artist=${encodeURIComponent(artist as string || '')}`;
+    res.json({ success: true, data: { url: proxyUrl } });
   } catch (error) {
     console.error('Get stream url error:', error);
+    res.status(500).json({ success: false, message: (error as Error).message });
+  }
+};
+
+export const streamProxy = async (req: Request, res: Response) => {
+  try {
+    const { id, source } = req.params;
+    const { name, artist } = req.query;
+    const streamUrl = await musicProxyService.getStreamUrl(id, source, name as string, artist as string);
+    
+    const response = await fetch(streamUrl);
+    if (!response.ok) {
+      return res.status(response.status).json({ success: false, message: 'Failed to fetch audio stream' });
+    }
+    
+    const contentType = response.headers.get('content-type');
+    const contentLength = response.headers.get('content-length');
+    
+    if (contentType) {
+      res.setHeader('Content-Type', contentType);
+    }
+    if (contentLength) {
+      res.setHeader('Content-Length', contentLength);
+    }
+    res.setHeader('Accept-Ranges', 'bytes');
+    
+    const reader = response.body?.getReader();
+    if (!reader) {
+      return res.status(500).json({ success: false, message: 'Failed to get stream reader' });
+    }
+    
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      res.write(Buffer.from(value));
+    }
+    
+    res.end();
+  } catch (error) {
+    console.error('Stream proxy error:', error);
     res.status(500).json({ success: false, message: (error as Error).message });
   }
 };

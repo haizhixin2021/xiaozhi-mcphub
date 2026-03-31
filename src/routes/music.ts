@@ -5,6 +5,7 @@ import {
   getSongDetail,
   getSongUrl,
   getStreamUrl,
+  streamProxy,
   getLyrics,
   getDailyRecommendation,
   getPlaylistSongs,
@@ -18,6 +19,7 @@ router.get('/playlist/search', searchPlaylist);
 router.get('/song/:source/:id', getSongDetail);
 router.get('/song/:source/:id/url', getSongUrl);
 router.get('/song/:source/:id/stream', getStreamUrl);
+router.get('/stream/:source/:id', streamProxy);
 router.get('/song/:source/:id/lyrics', getLyrics);
 router.get('/daily', getDailyRecommendation);
 router.get('/playlist/:source/:playlistId', getPlaylistSongs);
