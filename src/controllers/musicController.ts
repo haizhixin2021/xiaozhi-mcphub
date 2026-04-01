@@ -58,9 +58,7 @@ export const getStreamUrl = async (req: Request, res: Response) => {
   try {
     const { id, source } = req.params;
     const { name, artist } = req.query;
-    const protocol = req.protocol;
-    const host = req.get('host');
-    const proxyUrl = `${protocol}://${host}/api/music/stream/${source}/${id}?name=${encodeURIComponent(name as string || '')}&artist=${encodeURIComponent(artist as string || '')}`;
+    const proxyUrl = `/api/music/stream/${source}/${id}?name=${encodeURIComponent(name as string || '')}&artist=${encodeURIComponent(artist as string || '')}`;
     res.json({ success: true, data: { url: proxyUrl } });
   } catch (error) {
     console.error('Get stream url error:', error);
